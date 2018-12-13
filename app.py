@@ -123,12 +123,30 @@ def generateWikiMsg(data):
     return 'new wiki stuff'
 
 
+def getEmojiStatus(status):
+    if status == "success":
+        return "✔"
+
+    if status == "running":
+        return "▶"
+
+    return "❓"
+
+
 def generatePipelineMsg(data):
-    return 'new pipeline stuff'
+    msg = '{0}'.format(getEmojiStatus(data['object_attributes']['status']))
+    print("pipeline trigger")
+    if data['object_attributes']['status'] == 'running':
+        msg = msg + '{0} #{1} (by {2})\n'.format(data['project']['path_with_namespace'], data['object_attributes']['id'], data['user']['username'])
+    else:
+        msg = msg + '*{0} #{1} (by {2})*\n'.format(data['project']['path_with_namespace'], data['object_attributes']['id'], data['user']['username'])
+    return msg
 
 
 def generateBuildMsg(data):
-    return 'new build stuff'
+    msg = ''
+    msg = msg + 'build #'+str(data['build_id'])+' commit #'+str(data['commit']['id'])+' '+str(data['build_status'])+'\n'
+    return msg
 
 
 if __name__ == "__main__":
