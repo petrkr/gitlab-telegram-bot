@@ -125,27 +125,53 @@ def generateWikiMsg(data):
 
 def getEmojiStatus(status):
     if status == "success":
-        return "✔"
+        return "🎉"
+
+    if status == "pending":
+        return "⌛️"
 
     if status == "running":
-        return "▶"
+        return "🏗"
+
+    if status == "failed":
+        return "🧨"
+
+    print("Unknown status: {0}".format(status))
 
     return "❓"
 
 
 def generatePipelineMsg(data):
     msg = '{0}'.format(getEmojiStatus(data['object_attributes']['status']))
+    pipeline_url = "{0}/pipelines/{1}".format(data['project']['web_url'],
+                                           data['object_attributes']['id'])
     print("pipeline trigger")
-    if data['object_attributes']['status'] == 'running':
-        msg = msg + '{0} #{1} (by {2})\n'.format(data['project']['path_with_namespace'], data['object_attributes']['id'], data['user']['username'])
-    else:
-        msg = msg + '*{0} #{1} (by {2})*\n'.format(data['project']['path_with_namespace'], data['object_attributes']['id'], data['user']['username'])
+    msg = msg + '{0} [#{1}]({2}) (by {3})\n'.format(data['project']['path_with_namespace'],
+                                                    data['object_attributes']['id'],
+                                                    pipeline_url,
+                                                    data['user']['username'])
     return msg
 
 
 def generateBuildMsg(data):
-    msg = ''
-    msg = msg + 'build #'+str(data['build_id'])+' commit #'+str(data['commit']['id'])+' '+str(data['build_status'])+'\n'
+    if not data['build_status'] == 'failed':
+        return ''
+
+    build_url = "{0}/-/jobs/{1}".format(data['repository']['homepage'],
+                                        data['build_id'])
+
+    commit_url = "{0}/commit/{1}".format(data['repository']['homepage'],
+                                         data['commit']['sha'])
+
+    msg = '{0}'.format(getEmojiStatus(data['build_status']))
+    print("build trigger")
+    msg = msg + '{0} - {1} [#{2}]({3}) [#{4}]({5}) ({6}) \n'.format(data['project_name'],
+                                                                    data['build_name'],
+                                                                    data['build_id'],
+                                                                    build_url,
+                                                                    data['commit']['sha'],
+                                                                    commit_url,
+                                                                    data['ref'])
     return msg
 
 
